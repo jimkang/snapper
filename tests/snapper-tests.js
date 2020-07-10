@@ -6,6 +6,7 @@ var request = require('request');
 var fs = require('fs');
 var rimraf = require('rimraf');
 var http = require('http');
+var { queue } = require('d3-queue');
 
 const { secret } = require('../config');
 
@@ -21,7 +22,7 @@ var testCases = [
     name: 'Get a snapshot',
     body: {
       url: 'https://apod.nasa.gov/apod/astropix.html',
-      waitLimit: 10000,
+      waitLimit: 1000,
       screenshotOpts: {
         clip: {
           x: 0,
@@ -41,7 +42,7 @@ var testCases = [
     name: 'Bad secret auth',
     body: {
       url: 'https://apod.nasa.gov/apod/astropix.html',
-      waitLimit: 10000,
+      waitLimit: 1000,
       screenshotOpts: {
         clip: {
           x: 0,
@@ -61,7 +62,7 @@ var testCases = [
     name: 'Bad url',
     body: {
       url: 'https://aaaaapod.nasa.gov/apod/astropix.html',
-      waitLimit: 10000,
+      waitLimit: 1000,
       screenshotOpts: {
         clip: {
           x: 0,
@@ -75,7 +76,7 @@ var testCases = [
     headers: {
       Authorization: `Bearer ${secret}`
     },
-    expectedStatusCode: 404
+    expectedStatusCode: 500
   }
 ];
 
@@ -86,10 +87,11 @@ function runTest(testCase) {
 
   function testSnap(t) {
     var server;
+    var shutDownApp;
 
     Snapper({ secret }, startServer);
 
-    function startServer(error, app) {
+    function startServer(error, { app, shutDown }) {
       assertNoError(t.ok, error, 'Server created.');
       if (error) {
         console.log('Error creating server:', error);
@@ -97,6 +99,7 @@ function runTest(testCase) {
       }
       server = http.createServer(app);
       server.listen(port, runRequest);
+      shutDownApp = shutDown;
     }
 
     function runRequest(error) {
@@ -128,8 +131,19 @@ function runTest(testCase) {
           filename,
           'and make sure it is good and the contents are the SIZE they *should* be.'
         );
+      } else if (buffer) {
+        console.log('Response body as text:', buffer.toString());
       }
-      server.close(t.end);
+      var q = queue();
+      q.defer(server.close.bind(server));
+      q.defer(shutDownApp);
+      q.await(complete);
+    }
+    function complete(error) {
+      if (error) {
+        console.log('Error while shutting down:', error);
+      }
+      t.end();
     }
   }
 }

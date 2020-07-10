@@ -1,9 +1,24 @@
 var express = require('express');
 var cors = require('cors');
 var bodyParser = require('body-parser');
-var callNextTick = require('call-next-tick');
+var Webimage = require('webimage');
+var oknok = require('oknok');
+var pick = require('lodash.pick');
+
+var allowedWebimageOpts = [
+  'url',
+  'waitLimit',
+  'screenshotOpts',
+  'viewportOpts',
+  'supersampleOpts',
+  'autocrop',
+  'burstCount',
+  'timeBetweenBursts',
+  'makeBurstsIntoAnimatedGif'
+];
 
 function Snapper({ secret }, done) {
+  var webimage;
   var app = express(cors());
   app.use(bodyParser.json());
 
@@ -11,12 +26,16 @@ function Snapper({ secret }, done) {
   app.post('/snap', snap);
   app.head(/.*/, respondHead);
 
-  // Async init goes here, if it is ever needed.
+  // Async init.
+  Webimage({}, oknok({ ok: useWebimage, nok: done }));
 
-  callNextTick(done, null, app);
+  function useWebimage(inst) {
+    webimage = inst;
+    done(null, { app, shutDown });
+  }
 
   function respondOK(req, res, next) {
-    res.json(200, { message: 'OK!' });
+    res.status(200).json({ message: 'OK!' });
     next();
   }
 
@@ -33,8 +52,23 @@ function Snapper({ secret }, done) {
       return;
     }
 
-    res.status(500).send('Not impl.');
-    next();
+    var webimageOpts = pick(req.body, allowedWebimageOpts);
+    // TODO: Consider validating the whole tree?
+    webimage.getImage(
+      webimageOpts,
+      oknok({ ok: writeImage, nok: handleWebimageError })
+    );
+
+    function writeImage(buffer) {
+      res.status(200).send(buffer);
+      next();
+    }
+
+    function handleWebimageError(error) {
+      const errorMessage = `Error from webimage: ${error.message}`;
+      res.status(500).send(errorMessage);
+      next();
+    }
   }
 
   function respondHead(req, res, next) {
@@ -47,6 +81,10 @@ function Snapper({ secret }, done) {
     }
     res.end();
     next();
+  }
+
+  function shutDown(done) {
+    webimage.shutDown(done);
   }
 }
 

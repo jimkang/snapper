@@ -11,7 +11,7 @@ const port = 9863;
 
 Snapper({ secret: config.secret }, createServer);
 
-function createServer(error, app) {
+function createServer(error, { app }) {
   if (error) {
     process.stderr.write(logFormat(error.message, error.stack));
     process.exit(1);
