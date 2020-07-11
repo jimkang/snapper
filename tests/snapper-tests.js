@@ -13,9 +13,10 @@ const { secret } = require('../config');
 const port = 9863;
 const serverHost = process.env.SERVER || 'localhost';
 
-const outputDir = __dirname + '/output/';
+const outputDir = __dirname + '/output';
 
 rimraf.sync(outputDir + '*.png');
+rimraf.sync(outputDir + '*.gif');
 
 var testCases = [
   {
@@ -36,6 +37,7 @@ var testCases = [
     headers: {
       Authorization: `Bearer ${secret}`
     },
+    fileExtension: 'png',
     expectedStatusCode: 200
   },
   {
@@ -56,6 +58,7 @@ var testCases = [
     headers: {
       Authorization: 'Bearer wrong'
     },
+    fileExtension: 'png',
     expectedStatusCode: 401
   },
   {
@@ -76,7 +79,37 @@ var testCases = [
     headers: {
       Authorization: `Bearer ${secret}`
     },
+    fileExtension: 'png',
     expectedStatusCode: 500
+  },
+  {
+    name: 'Get an animated gif',
+    body: {
+      url:
+        'https://jimkang.com/dem-bones/#seed=2020-07-11T00%3A53%3A26.024Z&hideControls=yes&still=no',
+      waitLimit: 1000,
+      screenshotOpts: {
+        clip: {
+          x: 0,
+          y: 0,
+          width: 640,
+          height: 640
+        }
+      },
+      viewportOpts: {
+        width: 640,
+        height: 640,
+        deviceScaleFactor: 1
+      },
+      burstCount: 48,
+      timeBetweenBursts: 1000 / 12,
+      makeBurstsIntoAnimatedGif: true
+    },
+    headers: {
+      Authorization: `Bearer ${secret}`
+    },
+    fileExtension: 'gif',
+    expectedStatusCode: 200
   }
 ];
 
@@ -124,7 +157,7 @@ function runTest(testCase) {
       );
       if (res.statusCode === 200) {
         // TODO: Get file type from MIME type.
-        const filename = outputDir + testCase.name + '.png';
+        const filename = `${outputDir}/${testCase.name}.${testCase.fileExtension}`;
         fs.writeFileSync(filename, buffer);
         console.log(
           'Look at',
