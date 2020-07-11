@@ -1,6 +1,6 @@
 {
   "name": "snapper",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "REST service that gets a screenshot of a web page on behalf of the client.",
   "main": "start-snapper.js",
   "private": true,
