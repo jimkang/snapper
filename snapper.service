@@ -6,7 +6,7 @@ ExecStart=/opt/snapper/start-snapper.js
 Restart=always
 User=bot
 Group=bot
-Environment=PATH=/usr/bin:/usr/local/bin
+Environment=PATH=/usr/bin:/usr/local/bin:/bin
 Environment=NODE_ENV=production
 WorkingDirectory=/opt/snapper
 [Install]

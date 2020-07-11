@@ -16,6 +16,14 @@ After that, there's a `config.js` file you have to create in the project root. I
 
 The secret is something the service checks against when receiving posts.
 
+You can use the `initial-setup` make target to set up an instance of this on your server as a systemd service.
+
+To be safe, you may want to first run `install-playwright-deps` which makes sure all of the binary dependencies of the headless browsers from [playwright](https://github.com/microsoft/playwright) are all there. (Anecdote: On at least one system, it just happened to work without these. On another it did not.)
+
+You should probably proxy this from nginx running https. Otherwise, your secret can be intercepted by a man-in-the-middle attack.
+
+This works on Ubuntu 18 and will not work on earlier versions. It will probably work on OS X, but you may have to mess around with install headless browser dependencies. Check out the [playwright](https://github.com/microsoft/playwright) docs to find out more about that or Windows.
+
 License
 -------
 
