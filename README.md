@@ -1,10 +1,8 @@
-snapper
-==================
+# snapper
 
 REST service that gets a screenshot of a web page on behalf of the client.
 
-Installation
-------------
+## Installation
 
 Clone this repo.
 
@@ -24,8 +22,19 @@ You should probably proxy this from nginx running https. Otherwise, your secret 
 
 This works on Ubuntu 18 and will not work on earlier versions. It will probably work on OS X, but you may have to mess around with install headless browser dependencies. Check out the [playwright](https://github.com/microsoft/playwright) docs to find out more about that or Windows.
 
-License
--------
+## Usage
+
+Once deployed, a typical http request to the service looks like this:
+
+	curl -v https://yoursite.com/snapper/snap \
+    -X POST \
+    -H 'Authorization: Bearer $(SECRET)' -H "Content-Type: application/json" \
+    -d '{ "url": "https://apod.nasa.gov/apod/astropix.html", "waitLimit": 1000, "screenshotOpts": { "clip": { "x": 0, "y": 0, "width": 1280, "height": 800 }, "omitBackground": true } }' \
+    -o tmp.png
+
+The opts that can be used in the body of the request are described in the [webimage README](https://github.com/jimkang/webimage#usage).
+
+## License
 
 The MIT License (MIT)
 
