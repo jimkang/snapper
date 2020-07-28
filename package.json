@@ -35,6 +35,6 @@
     "log-format": "^1.0.0",
     "oknok": "^3.0.0",
     "rimraf": "^3.0.2",
-    "webimage": "^2.0.0"
+    "webimage": "^2.0.2"
   }
 }
