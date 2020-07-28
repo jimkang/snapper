@@ -27,7 +27,7 @@ function Snapper({ secret }, done) {
   app.head(/.*/, respondHead);
 
   // Async init.
-  Webimage({}, oknok({ ok: useWebimage, nok: done }));
+  Webimage({ browserType: 'webkit' }, oknok({ ok: useWebimage, nok: done }));
 
   function useWebimage(inst) {
     webimage = inst;
