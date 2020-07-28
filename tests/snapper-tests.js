@@ -120,11 +120,10 @@ function runTest(testCase) {
 
   function testSnap(t) {
     var server;
-    var shutDownApp;
 
     Snapper({ secret }, startServer);
 
-    function startServer(error, { app, shutDown }) {
+    function startServer(error, { app }) {
       assertNoError(t.ok, error, 'Server created.');
       if (error) {
         console.log('Error creating server:', error);
@@ -132,7 +131,6 @@ function runTest(testCase) {
       }
       server = http.createServer(app);
       server.listen(port, runRequest);
-      shutDownApp = shutDown;
     }
 
     function runRequest(error) {
@@ -169,7 +167,6 @@ function runTest(testCase) {
       }
       var q = queue();
       q.defer(server.close.bind(server));
-      q.defer(shutDownApp);
       q.await(complete);
     }
     function complete(error) {

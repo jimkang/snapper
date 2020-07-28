@@ -2,8 +2,9 @@ var express = require('express');
 var cors = require('cors');
 var bodyParser = require('body-parser');
 var Webimage = require('webimage');
-var oknok = require('oknok');
 var pick = require('lodash.pick');
+var callNextTick = require('call-next-tick');
+var ep = require('errorback-promise');
 
 var allowedWebimageOpts = [
   'url',
@@ -18,7 +19,6 @@ var allowedWebimageOpts = [
 ];
 
 function Snapper({ secret }, done) {
-  var webimage;
   var app = express(cors());
   app.use(bodyParser.json());
 
@@ -26,20 +26,15 @@ function Snapper({ secret }, done) {
   app.post('/snap', snap);
   app.head(/.*/, respondHead);
 
-  // Async init.
-  Webimage({}, oknok({ ok: useWebimage, nok: done }));
-
-  function useWebimage(inst) {
-    webimage = inst;
-    done(null, { app, shutDown });
-  }
+  // Add async init here if necessary.
+  callNextTick(done, null, { app });
 
   function respondOK(req, res, next) {
     res.status(200).json({ message: 'OK!' });
     next();
   }
 
-  function snap(req, res, next) {
+  async function snap(req, res, next) {
     if (!req.body.url) {
       res.status(400).json({ message: 'Missing `url` key in body.' });
       return;
@@ -54,15 +49,33 @@ function Snapper({ secret }, done) {
 
     var webimageOpts = pick(req.body, allowedWebimageOpts);
     // TODO: Consider validating the whole tree?
-    webimage.getImage(
-      webimageOpts,
-      oknok({ ok: writeImage, nok: handleWebimageError })
-    );
 
-    function writeImage(buffer) {
-      res.status(200).send(buffer);
-      next();
+    var ctorRes = await ep(Webimage, {});
+    if (ctorRes.error) {
+      handleWebimageError(ctorRes.error);
+      return;
     }
+
+    var webimage = ctorRes.values[0];
+    var webimageRes = await ep(webimage.getImage, webimageOpts);
+
+    if (!webimageRes.error) {
+      let buffer = webimageRes.values[0];
+      res.status(200).send(buffer);
+    }
+
+    var shutDownRes = await ep(webimage.shutDown);
+
+    if (webimageRes.error) {
+      handleWebimageError(webimageRes.error);
+      return;
+    }
+    if (shutDownRes.error) {
+      handleWebimageError(shutDownRes.error);
+      return;
+    }
+
+    next();
 
     function handleWebimageError(error) {
       const errorMessage = `Error from webimage: ${error.message}`;
@@ -81,10 +94,6 @@ function Snapper({ secret }, done) {
     }
     res.end();
     next();
-  }
-
-  function shutDown(done) {
-    webimage.shutDown(done);
   }
 }
 
