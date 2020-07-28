@@ -61,6 +61,16 @@ try-deployed:
     -d '{ "url": "https://apod.nasa.gov/apod/astropix.html", "waitLimit": 1000, "screenshotOpts": { "clip": { "x": 0, "y": 0, "width": 1280, "height": 800 }, "omitBackground": true } }' \
     -o tmp.png
 
+try-colorer:
+	# You need to set the SECRET env var for this to work.
+	# e.g. Run `export SECRET='the secret'` before running this. Then, unset it afterward.
+	curl -v https://smidgeo.com/snapper/snap \
+    -X POST \
+    -H 'Authorization: Bearer $(SECRET)' -H "Content-Type: application/json" \
+    -d '{ "url": "http://jimkang.com/colorer-web/#displaySrcImage=no&hideUi=yes&srcImgUrl=https://ia600103.us.archive.org/5/items/11-17-17Margaret/11-17-17Margaret.jpg&runs=%5B%7B%22renderer%22%3A%22replacer%22%2C%22quant%22%3A24%2C%22grayscale%22%3A%22yes%22%2C%22recolorMode%22%3A%22random%22%2C%22showBase%22%3A%22no%22%2C%22opacityPercentOverBase%22%3A46%2C%22minimumValueDifference%22%3A0.2%2C%22numberOfRetriesToAvoidSingleColor%22%3A5%7D%5D", "waitLimit": 1000, "screenshotOpts": { "clip": { "x": 0, "y": 0, "width": 1280, "height": 800 }, "omitBackground": true } }' \
+    -o colorer.png
+
+
 install-playwright-deps:
 	$(PRIVSSHCMD) "apt-get install -y --no-install-recommends \
     libwoff1 \
