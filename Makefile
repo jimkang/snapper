@@ -98,3 +98,7 @@ install-playwright-deps:
     libdbus-glib-1-2 \
     libxt6 \
     ffmpeg"
+
+install-fonts:
+	$(PRIVSSHCMD) "cd $(APPDIR) && cp fonts/*.otf /usr/local/share/fonts && \
+	  fc-cache && fc-list"
