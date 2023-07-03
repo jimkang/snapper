@@ -72,32 +72,7 @@ try-colorer:
 
 
 install-playwright-deps:
-	$(PRIVSSHCMD) "apt-get install -y --no-install-recommends \
-    libwoff1 \
-    libopus0 \
-    libwebp6 \
-    libwebpdemux2 \
-    libenchant1c2a \
-    libgudev-1.0-0 \
-    libsecret-1-0 \
-    libhyphen0 \
-    libgdk-pixbuf2.0-0 \
-    libegl1 \
-    libnotify4 \
-    libxslt1.1 \
-    libevent-2.1-6 \
-    libgles2 \
-    libvpx5 \
-    libgstreamer-gl1.0-0 \
-    libgstreamer-plugins-bad1.0-0 \
-    gstreamer1.0-plugins-good \
-    libnss3 \
-    libxss1 \
-    libasound2 \
-    fonts-noto-color-emoji \
-    libdbus-glib-1-2 \
-    libxt6 \
-    ffmpeg"
+	$(PRIVSSHCMD) "sudo npx playwright install-deps"
 
 install-fonts:
 	$(PRIVSSHCMD) "cd $(APPDIR) && cp fonts/*.otf /usr/local/share/fonts && \
